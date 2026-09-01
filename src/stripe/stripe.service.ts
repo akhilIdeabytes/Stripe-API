@@ -43,6 +43,47 @@ export class StripeService {
     return this.client.customers.retrieve(id);
   }
 
+  /**
+   * A SetupIntent collects and stores a card or bank mandate WITHOUT
+   * charging it. This is what makes "pay with the card on file" possible
+   * later: the customer enters details once, Stripe keeps the token, and
+   * we charge off-session from then on.
+   */
+  createSetupIntent(
+    params: Stripe.SetupIntentCreateParams,
+    idempotencyKey?: string,
+  ): Promise<Stripe.SetupIntent> {
+    return this.client.setupIntents.create(params, this.opts(idempotencyKey));
+  }
+
+  retrieveSetupIntent(id: string): Promise<Stripe.SetupIntent> {
+    return this.client.setupIntents.retrieve(id);
+  }
+
+  /** Removes a stored payment method from the customer. */
+  detachPaymentMethod(id: string): Promise<Stripe.PaymentMethod> {
+    return this.client.paymentMethods.detach(id);
+  }
+
+  retrievePaymentMethod(id: string): Promise<Stripe.PaymentMethod> {
+    return this.client.paymentMethods.retrieve(id);
+  }
+
+  updateCustomer(
+    id: string,
+    params: Stripe.CustomerUpdateParams,
+  ): Promise<Stripe.Customer> {
+    return this.client.customers.update(id, params);
+  }
+
+  /** Saved payment methods, used to authorize a customer off-session. */
+  listCustomerPaymentMethods(
+    customerId: string,
+    type: Stripe.PaymentMethodListParams.Type = 'card',
+  ): Promise<Stripe.ApiList<Stripe.PaymentMethod>> {
+    return this.client.paymentMethods.list({ customer: customerId, type });
+  }
+
   // ---- Checkout Sessions (card payments) -----------------------------
 
   createCheckoutSession(
@@ -83,6 +124,14 @@ export class StripeService {
 
   cancelPaymentIntent(id: string): Promise<Stripe.PaymentIntent> {
     return this.client.paymentIntents.cancel(id);
+  }
+
+  /** Takes funds that were authorized with capture_method: 'manual'. */
+  capturePaymentIntent(
+    id: string,
+    params?: Stripe.PaymentIntentCaptureParams,
+  ): Promise<Stripe.PaymentIntent> {
+    return this.client.paymentIntents.capture(id, params);
   }
 
   // ---- Refunds --------------------------------------------------------

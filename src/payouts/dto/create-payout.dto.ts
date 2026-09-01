@@ -1,11 +1,12 @@
 import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreatePayoutDto {
-  // Omit to pay out the full available balance.
-  @IsOptional()
+  // Required: Stripe's Payout API has no "full available balance" mode,
+  // both amount and currency must be supplied. This used to be optional,
+  // which meant a blank amount reached Stripe and came back as a 400.
   @IsInt()
   @Min(1)
-  amount?: number;
+  amount: number;
 
   @IsOptional()
   @IsString()

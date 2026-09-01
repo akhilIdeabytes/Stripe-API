@@ -1,10 +1,11 @@
-import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 export class CreateRefundDto {
+  /** Local Payment id. */
   @IsInt()
-  paymentId: number; // local Payment id
+  paymentId: number;
 
-  // Omit to refund the full remaining amount
+  /** Omit to refund the full remaining amount. */
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -13,4 +14,10 @@ export class CreateRefundDto {
   @IsOptional()
   @IsIn(['duplicate', 'fraudulent', 'requested_by_customer'])
   reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer';
+
+  /** Internal note, kept locally and not sent to Stripe. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  note?: string;
 }

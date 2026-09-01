@@ -3,11 +3,12 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  OneToMany,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Order } from '../../orders/entities/order.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 
 // Local mirror of a Stripe Customer object, so the rest of the app can
 // reference customers without round-tripping to Stripe on every request.
@@ -15,6 +16,15 @@ import { Order } from '../../orders/entities/order.entity';
 export class Customer {
   @PrimaryGeneratedColumn()
   id: number;
+
+  /** Owning platform. Scoping customers stops one tenant charging
+      another's payer by guessing an integer id. */
+  @Column()
+  tenantId: number;
+
+  @ManyToOne(() => Tenant)
+  @JoinColumn({ name: 'tenantId' })
+  tenant: Tenant;
 
   @Index({ unique: true })
   @Column()
@@ -29,9 +39,6 @@ export class Customer {
 
   @Column({ nullable: true })
   phone?: string;
-
-  @OneToMany(() => Order, (order) => order.customer)
-  orders: Order[];
 
   @CreateDateColumn()
   createdAt: Date;

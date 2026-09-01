@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { Payment } from '../../payments/entities/payment.entity';
 
-// Mirrors Stripe's Refund.status values.
+/** Mirrors Stripe's Refund.status values. */
 export enum RefundStatus {
   PENDING = 'pending',
   REQUIRES_ACTION = 'requires_action',
@@ -20,9 +20,13 @@ export enum RefundStatus {
 }
 
 @Entity('refunds')
+@Index(['tenantId', 'createdAt'])
 export class Refund {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
+  tenantId: number;
 
   @Column()
   paymentId: number;
@@ -43,6 +47,13 @@ export class Refund {
 
   @Column({ nullable: true })
   reason?: string;
+
+  /** Free-text note from whoever issued it in the console. */
+  @Column({ type: 'text', nullable: true })
+  note?: string;
+
+  @Column({ nullable: true })
+  issuedByUserId?: number;
 
   @Column({ type: 'varchar', default: RefundStatus.PENDING })
   status: RefundStatus;

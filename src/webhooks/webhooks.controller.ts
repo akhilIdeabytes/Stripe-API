@@ -10,7 +10,9 @@ import {
 import { Request } from 'express';
 import { WebhooksService } from './webhooks.service';
 import { Public } from '../common/decorators/public.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('webhooks')
 @Controller('webhooks')
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);

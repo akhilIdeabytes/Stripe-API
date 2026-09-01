@@ -24,19 +24,20 @@ export class PayoutsService {
   ) {}
 
   async create(
-    amount: number | undefined,
+    amount: number,
     currency: string | undefined,
     method: 'standard' | 'instant' | undefined,
     idempotencyKey?: string,
   ): Promise<Payout> {
-    const stripePayout = await this.stripe.createPayout(
-      {
-        amount,
-        currency: currency ?? 'usd',
-        method,
-      } as Stripe.PayoutCreateParams,
-      idempotencyKey,
-    );
+    // No `as` cast here anymore - amount and currency are both required by
+    // Stripe, and the cast was hiding exactly that.
+    const params: Stripe.PayoutCreateParams = {
+      amount,
+      currency: currency ?? 'usd',
+    };
+    if (method) params.method = method;
+
+    const stripePayout = await this.stripe.createPayout(params, idempotencyKey);
 
     const payout = this.payouts.create({
       stripePayoutId: stripePayout.id,

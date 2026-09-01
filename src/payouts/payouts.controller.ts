@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { PayoutsService } from './payouts.service';
 import { CreatePayoutDto } from './dto/create-payout.dto';
+import { ApiTags, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 
 /**
  * Payouts move money OUT of your Stripe balance into your OWN linked bank
@@ -12,13 +13,29 @@ import { CreatePayoutDto } from './dto/create-payout.dto';
  * refunds module on purpose: refunding a charge and paying out your
  * balance are different operations with different APIs.
  */
+@ApiTags('payouts')
+@ApiBearerAuth('bearer')
 @Controller('payouts')
 export class PayoutsController {
   constructor(private readonly payoutsService: PayoutsService) {}
 
+  @ApiHeader({
+    name: 'Idempotency-Key',
+    required: false,
+    description:
+      'Optional key forwarded to Stripe so a retried request never creates a duplicate payout.',
+  })
   @Post()
-  create(@Body() dto: CreatePayoutDto) {
-    return this.payoutsService.create(dto.amount, dto.currency, dto.method);
+  create(
+    @Body() dto: CreatePayoutDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ) {
+    return this.payoutsService.create(
+      dto.amount,
+      dto.currency,
+      dto.method,
+      idempotencyKey,
+    );
   }
 
   @Get()
